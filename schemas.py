@@ -11,10 +11,10 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List
 
-# Example schemas (replace with your own):
+# Example schemas (you can keep using these or the new ones below)
 
 class User(BaseModel):
     """
@@ -38,11 +38,32 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
+# --------------------------------------------------
+# School Portal Schemas
 # --------------------------------------------------
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class School(BaseModel):
+    """Schools collection schema (collection name: "school")"""
+    name: str = Field(..., description="School name")
+    email: EmailStr = Field(..., description="School admin email")
+    password: str = Field(..., min_length=6, description="Password (plain for demo)")
+    address: Optional[str] = Field(None, description="Address")
+    phone: Optional[str] = Field(None, description="Phone number")
+
+class Order(BaseModel):
+    """Uniform orders for a school (collection name: "order")"""
+    school_id: str = Field(..., description="ID of the school (stringified ObjectId)")
+    order_number: str = Field(..., description="Human-friendly order number")
+    amount: float = Field(..., ge=0, description="Order amount")
+    status: str = Field("paid", description="Order status: paid/pending/cancelled")
+    items: Optional[List[str]] = Field(default=None, description="List of item names")
+
+class PayoutRequest(BaseModel):
+    """Payout requests made by schools (collection name: "payoutrequest")"""
+    school_id: str = Field(..., description="ID of the school (stringified ObjectId)")
+    amount: float = Field(..., ge=0, description="Requested payout amount")
+    bank_name: str = Field(..., description="Bank name")
+    account_holder: str = Field(..., description="Account holder name")
+    account_number: str = Field(..., description="Bank account number")
+    ifsc: str = Field(..., description="IFSC/SWIFT code")
+    status: str = Field("pending", description="Request status: pending/approved/rejected/paid")
